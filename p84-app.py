@@ -23,11 +23,11 @@ st.markdown(f"""
 # 📥 URL direta da planilha no GitHub
 URL_PLANILHA = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/DESENHOS%20P84%20REV.xlsx"
 
-# 📥 Carregar os dados da planilha
-@st.cache_data
+# 🔄 Carregar dados SEM CACHE (atualização automática)
 def carregar_dados(url):
-    df = pd.read_excel(url)
-    return df
+    return pd.read_excel(url)
+
+df = carregar_dados(URL_PLANILHA)
 
 # 🔍 Função para buscar por parte do nome do desenho
 def buscar_desenho(df, termo):
@@ -87,6 +87,7 @@ if termo_input:
             st.markdown("---")
     else:
         st.info("Nenhum desenho encontrado com esse trecho.")
+
 
 
 

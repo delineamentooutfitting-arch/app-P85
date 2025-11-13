@@ -31,26 +31,6 @@ def safe_rerun():
     else:
         st.experimental_rerun()
 
-def render_logo_titulo(titulo: str, subtitulo: str | None = None):
-    """
-    Cabeçalho robusto usando colunas + st.image/st.markdown, sem base64/HTML.
-    Se a URL da logo falhar, mostra só o título (não quebra o app).
-    """
-    left, center, right = st.columns([0.15, 0.7, 0.15])  # centraliza o bloco
-    with center:
-        col_logo, col_texto = st.columns([0.18, 0.82])
-        with col_logo:
-            try:
-                st.image(RAW_LOGO_URL, width=60)
-            except Exception:
-                st.empty()
-        with col_texto:
-            st.markdown("<h1 style='margin:0; padding:0;'>Desenhos P84</h1>" if titulo == "Desenhos P84"
-                        else f"<h1 style='margin:0; padding:0;'>{titulo}</h1>",
-                        unsafe_allow_html=True)
-            if subtitulo:
-                st.caption(subtitulo)
-
 def get_theme_palette():
     """
     Detecta o tema do Streamlit e retorna uma paleta de alto contraste.
@@ -58,48 +38,132 @@ def get_theme_palette():
     base = st.get_option("theme.base") or "dark"  # 'light' ou 'dark'
     if base == "light":
         return {
-            "bg": "#EAF4FF",      # fundo claro com leve azul
-            "border": "#1E40AF",  # azul escuro
-            "text": "#0F172A",    # quase preto
-            "muted": "#334155",   # cinza para subtítulos
-            "accent": "#2563EB",  # azul médio
-            "shadow": "0 2px 8px rgba(30,64,175,0.12)",
-            "panel": "#FFFFFF",
+            "bg": "rgba(15, 23, 42, 0.35)",    # backdrop translúcido escuro
+            "panel": "#FFFFFF",                # caixa clara
+            "border": "#1E40AF",               # azul escuro
+            "text": "#0F172A",                 # quase preto
+            "muted": "#334155",                # cinza para subtítulos
+            "accent": "#2563EB",               # azul médio
+            "shadow": "0 8px 24px rgba(30,64,175,0.20)",
         }
     else:
         return {
-            "bg": "#0B1220",      # fundo escuro (alto contraste)
-            "border": "#3B82F6",  # azul vivo
-            "text": "#F8FAFC",    # quase branco
-            "muted": "#CBD5E1",   # cinza claro
-            "accent": "#60A5FA",  # azul claro
-            "shadow": "0 2px 12px rgba(0,0,0,0.35)",
-            "panel": "#0B1220",
+            "bg": "rgba(0, 0, 0, 0.50)",       # backdrop translúcido escuro
+            "panel": "#0B1220",                # caixa escura
+            "border": "#3B82F6",               # azul vivo
+            "text": "#F8FAFC",                 # quase branco
+            "muted": "#CBD5E1",                # cinza claro
+            "accent": "#60A5FA",               # azul claro
+            "shadow": "0 8px 28px rgba(0,0,0,0.35)",
         }
 
-def render_welcome_card(nome: str, funcao: str):
+def render_logo_titulo(titulo: str, subtitulo: str | None = None):
     """
-    Saudação com alto contraste, adaptada ao tema claro/escuro.
+    Cabeçalho alinhado à esquerda usando colunas + st.image/st.markdown.
+    """
+    col_logo, col_texto = st.columns([0.12, 0.88])  # alinha com widgets
+    with col_logo:
+        try:
+            st.image(RAW_LOGO_URL, width=60)
+        except Exception:
+            st.empty()
+    with col_texto:
+        st.markdown(f"<h1 style='margin:0; padding:0;'>{titulo}</h1>", unsafe_allow_html=True)
+        if subtitulo:
+            st.caption(subtitulo)
+
+def render_welcome_overlay(nome: str, funcao: str):
+    """
+    Sobreposição (overlay) de boas-vindas que cobre o conteúdo e só fecha no botão FECHAR.
+    - Usa CSS fixo para backdrop e para a caixa central com alto contraste.
+    - O botão FECHAR fica na parte inferior da caixa, em CAIXA ALTA.
     """
     p = get_theme_palette()
+
+    # CSS do overlay
     st.markdown(
-f"""<div style="
-background:{p['panel']};
-border: 1px solid {p['border']};
-padding: 16px;
-border-radius: 12px;
-margin-top: 12px;
-box-shadow: {p['shadow']};
-">
-<div style="font-weight:700; font-size:16px; color:{p['text']}; letter-spacing:0.2px;">
-Seja bem-vindo, <span style="color:{p['accent']};">{nome}</span>!
-</div>
-<div style="font-size:13px; color:{p['muted']}; margin-top:4px;">
-{funcao}
-</div>
-</div>""",
+        f"""
+        <style>
+        /* Backdrop cobrindo toda a viewport */
+        .overlay-backdrop {{
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: {p['bg']};
+            backdrop-filter: blur(2px);
+            z-index: 9998;
+        }}
+        /* Caixa central */
+        .overlay-box {{
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(640px, 88vw);
+            background: {p['panel']};
+            border: 1px solid {p['border']};
+            border-radius: 12px;
+            box-shadow: {p['shadow']};
+            z-index: 9999;
+            padding: 18px 20px 16px 20px;
+        }}
+        .overlay-title {{
+            font-weight: 700;
+            font-size: 18px;
+            color: {p['text']};
+            letter-spacing: 0.2px;
+            margin: 0 0 6px 0;
+        }}
+        .overlay-sub {{
+            font-size: 13px;
+            color: {p['muted']};
+            margin: 0 0 12px 0;
+        }}
+        /* Botão FECHAR (alinhado ao fim) */
+        .overlay-actions {{
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }}
+        </style>
+        """,
         unsafe_allow_html=True
     )
+
+    # Backdrop e caixa
+    st.markdown('<div class="overlay-backdrop"></div>', unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="overlay-box">
+            <div class="overlay-title">Seja bem-vindo, <span style="color:{p['accent']};">{nome}</span>!</div>
+            <div class="overlay-sub">{funcao}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Botão FECHAR (renderizado logo após, mas estilizado para parecer dentro da caixa)
+    # Dica: CSS direciona o botão para colar visualmente à caixa (posição natural de fluxo na página)
+    btn_css = f"""
+        <style>
+        div[data-testid="stHorizontalBlock"] div.stButton button {{
+            background: {p['border']};
+            color: #FFFFFF;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 0;
+            box-shadow: none;
+        }}
+        </style>
+    """
+    st.markdown(btn_css, unsafe_allow_html=True)
+    # Usamos colunas vazias para posicionar o botão horizontalmente abaixo da caixa
+    left, center, right = st.columns([0.30, 0.40, 0.30])
+    with center:
+        if st.button("FECHAR", key="overlay_close"):
+            st.session_state["welcome_open"] = False
+            safe_rerun()
 
 def normaliza_matricula(valor: str) -> str:
     """
@@ -192,8 +256,12 @@ def require_auth() -> bool:
         return True
     return authenticated
 
+# =========================
+# VIEWS
+# =========================
 def login_view():
-    render_logo_titulo("Acesso restrito — Desenhos P84")
+    # Cabeçalho à esquerda, sem "Acesso restrito —"
+    render_logo_titulo("Desenhos P84")
     st.write("Informe sua **matrícula (apenas números, até 5 dígitos)** para continuar.")
 
     with st.form("login_form", clear_on_submit=False):
@@ -218,9 +286,8 @@ def login_view():
                 "nome": user["nome"],
                 "funcao": user["funcao"],
                 "login_time": pd.Timestamp.utcnow(),
+                "welcome_open": True,  # abre overlay após login
             })
-            # Boas-vindas de alto contraste
-            render_welcome_card(st.session_state["nome"], st.session_state["funcao"])
             safe_rerun()
         else:
             st.error("Matrícula não encontrada na whitelist. Verifique e tente novamente.")
@@ -242,7 +309,7 @@ Usuário: <span style="font-weight:600; color:{p['text']};">{nome}</span>
         )
     with col2:
         if st.button("Sair"):
-            for k in ["authenticated", "matricula", "nome", "funcao", "login_time"]:
+            for k in ["authenticated", "matricula", "nome", "funcao", "login_time", "welcome_open"]:
                 st.session_state.pop(k, None)
             st.success("Você saiu da sessão.")
             safe_rerun()
@@ -260,7 +327,15 @@ def ordenar_revisoes(revisoes):
     return sorted(numericas, key=int) + sorted(letras)
 
 def main_app():
+    # Cabeçalho + overlay de boas-vindas (se estiver aberto)
     top_bar()
+    if st.session_state.get("welcome_open", False):
+        render_welcome_overlay(
+            st.session_state.get("nome", "—"),
+            st.session_state.get("funcao", "")
+        )
+
+    # Conteúdo principal
     try:
         df = carregar_dados_desenhos(URL_PLANILHA_DESENHOS)
     except Exception as e:

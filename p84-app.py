@@ -294,29 +294,43 @@ def login_view():
                 pass
             safe_rerun()
         else:
-            st.error("Matrícula não encontrada na whitelist. Verifique e tente novamente.")
+            st.error("Matrícula não encontrada. Verifique e tente novamente.")
 
 def top_bar():
     render_logo_titulo("Desenhos P84")
 
     p = get_theme_palette()
     col1, col2 = st.columns([1, 1])
+
+    # --- COLUNA ESQUERDA: Usuário em CAIXA ALTA e função embaixo ---
     with col1:
-        nome = st.session_state.get("nome", "—")
-        funcao = st.session_state.get("funcao", "")
+        nome = (st.session_state.get("nome") or "—").upper()  # CAIXA ALTA
+        funcao = st.session_state.get("funcao") or ""
+
         st.markdown(
-f"""<div style="font-size:13px; color:{p['muted']};">
-Usuário: <span style="font-weight:600; color:{p['text']};">{nome}</span>
-{f"&nbsp;•&nbsp;<span style='color:{p['muted']};'>{funcao}</span>" if funcao else ""}
-</div>""",
+            f"""
+            <div style="line-height:1.25;">
+              <div style="font-size:13px; color:{p['muted']};">
+                Usuário:
+              </div>
+              <div style="font-weight:700; font-size:14px; color:{p['text']};">
+                {nome}
+              </div>
+              <div style="font-size:13px; color:{p['muted']}; margin-top:2px;">
+                {funcao}
+              </div>
+            </div>
+            """,
             unsafe_allow_html=True
         )
+
+    # --- COLUNA DIREITA: botão Sair ---
     with col2:
         if st.button("Sair"):
             for k in ["authenticated", "matricula", "nome", "funcao", "login_time", "welcome_open"]:
                 st.session_state.pop(k, None)
             try:
-                st.experimental_set_query_params()  # limpa params
+                st.experimental_set_query_params()  # limpa query params do overlay
             except Exception:
                 pass
             st.success("Você saiu da sessão.")
@@ -410,3 +424,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+

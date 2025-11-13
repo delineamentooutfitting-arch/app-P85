@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-from PIL import Image
-import base64
-from io import BytesIO
 from datetime import timedelta
 import re
 import requests
@@ -13,7 +10,8 @@ import io
 # =========================
 st.set_page_config(page_title="Desenhos P84", page_icon="📄", layout="centered")
 
-# --- URLs no GitHub (sempre usar RAW nos downloads) ---
+# --- URLs RAW no GitHub ---
+RAW_LOGO_URL = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/SEATRIUM.png"
 URL_PLANILHA_DESENHOS = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/DESENHOS%20P84%20REV.xlsx"
 
 WHITELIST_FORMAT = "xlsx"  # "xlsx" (atual) ou "csv"
@@ -33,34 +31,25 @@ def safe_rerun():
     else:
         st.experimental_rerun()
 
-def carregar_logo_base64(path: str) -> str:
-    """Carrega a imagem e retorna base64 para data:image/png;base64,..."""
-    logo = Image.open(path)
-    buf = BytesIO()
-    logo.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode()
-
 def render_logo_titulo(titulo: str, subtitulo: str | None = None):
     """
-    Cabeçalho com logo e título usando HTML REAL sem indentação (evita virar code block).
+    Cabeçalho robusto usando colunas + st.image/st.markdown, sem base64/HTML.
+    Se a URL da logo falhar, mostra só o título (não quebra o app).
     """
-    try:
-        logo_b64 = carregar_logo_base64("SEATRIUM.png")
-        st.markdown(
-f"""<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
-data:image/png;base64,{logo_b64}
-<div>
-<h1 style="margin:0;">{titulo}</h1>
-{f'<div style="font-size:13px;color:#bbb;margin-top:2px;">{subtitulo}</div>' if subtitulo else ''}
-</div>
-</div>""",
-            unsafe_allow_html=True
-        )
-    except Exception:
-        # fallback sem logo
-        st.header(titulo)
-        if subtitulo:
-            st.caption(subtitulo)
+    left, center, right = st.columns([0.15, 0.7, 0.15])  # centraliza o bloco
+    with center:
+        col_logo, col_texto = st.columns([0.18, 0.82])
+        with col_logo:
+            try:
+                st.image(RAW_LOGO_URL, width=60)
+            except Exception:
+                st.empty()
+        with col_texto:
+            st.markdown("<h1 style='margin:0; padding:0;'>Desenhos P84</h1>" if titulo == "Desenhos P84"
+                        else f"<h1 style='margin:0; padding:0;'>{titulo}</h1>",
+                        unsafe_allow_html=True)
+            if subtitulo:
+                st.caption(subtitulo)
 
 def get_theme_palette():
     """
@@ -74,8 +63,8 @@ def get_theme_palette():
             "text": "#0F172A",    # quase preto
             "muted": "#334155",   # cinza para subtítulos
             "accent": "#2563EB",  # azul médio
-            "panel_dark": "#EAF4FF",
             "shadow": "0 2px 8px rgba(30,64,175,0.12)",
+            "panel": "#FFFFFF",
         }
     else:
         return {
@@ -84,8 +73,8 @@ def get_theme_palette():
             "text": "#F8FAFC",    # quase branco
             "muted": "#CBD5E1",   # cinza claro
             "accent": "#60A5FA",  # azul claro
-            "panel_dark": "#0B1220",
             "shadow": "0 2px 12px rgba(0,0,0,0.35)",
+            "panel": "#0B1220",
         }
 
 def render_welcome_card(nome: str, funcao: str):
@@ -95,7 +84,7 @@ def render_welcome_card(nome: str, funcao: str):
     p = get_theme_palette()
     st.markdown(
 f"""<div style="
-background:{p['panel_dark']};
+background:{p['panel']};
 border: 1px solid {p['border']};
 padding: 16px;
 border-radius: 12px;
@@ -300,7 +289,7 @@ def main_app():
                             else "background-color:#e0e0e0;color:#000000;"
                         )
                         cols[i].markdown(
-f"""<div style='{destaque}padding:6px;border-radius:6px;text-align:center;font-weight:bold;'>{rev}</div>""",
+                            f"<div style='{destaque}padding:6px;border-radius:6px;text-align:center;font-weight:bold;'>{rev}</div>",
                             unsafe_allow_html=True
                         )
                     for i, rev in enumerate(revisoes_ordenadas):

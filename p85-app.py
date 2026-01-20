@@ -9,15 +9,15 @@ from streamlit.components.v1 import html  # para injetar overlay no parent
 # =========================
 # CONFIGURAÇÕES
 # =========================
-st.set_page_config(page_title="Desenhos P84", page_icon="📄", layout="centered")
+st.set_page_config(page_title="Desenhos P85", page_icon="📄", layout="centered")
 
 # --- URLs RAW no GitHub ---
-RAW_LOGO_URL = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/SEATRIUM.png"
-URL_PLANILHA_DESENHOS = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/DESENHOS%20P84%20REV.xlsx"
+RAW_LOGO_URL = "https://raw.githubusercontent.com/delineamentooutfitting-arch/app-P85/main/SEATRIUM.png"
+URL_PLANILHA_DESENHOS = "https://raw.githubusercontent.com/delineamentooutfitting-arch/app-P85/main/DESENHOS%20P85%20REV.xlsx"
 
 WHITELIST_FORMAT = "xlsx"  # "xlsx" (atual) ou "csv"
-URL_WHITELIST_XLSX = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/whitelist_matriculas.xlsx"
-URL_WHITELIST_CSV  = "https://raw.githubusercontent.com/pedroriginalumia-art/app-P84/main/whitelist_matriculas.csv"
+URL_WHITELIST_XLSX = "https://raw.githubusercontent.com/delineamentooutfitting-arch/app-P85/main/whitelist_matriculas.xlsx"
+URL_WHITELIST_CSV  = "https://raw.githubusercontent.com/delineamentooutfitting-arch/app-P85/main/whitelist_matriculas.csv"
 
 SESSION_TTL_HOURS = 8
 
@@ -424,6 +424,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 
 
 
